@@ -6,6 +6,7 @@ import { Injectable } from "@angular/core";
 import { AngularFirestore } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
 import { map, take, first } from 'rxjs/operators';
+import {convertSnaps} from './db-utils';
 
 @Injectable({ providedIn: 'root' })
 export class CoursesService {
@@ -18,12 +19,7 @@ export class CoursesService {
             ref.orderBy("seqNo")
         ).snapshotChanges()
             .pipe(map(snaps => {
-                return snaps.map(snap => {
-                    return <Course>{
-                        id: snap.payload.doc.id,
-                        ...(snap.payload.doc.data() as any)
-                    };
-                });
+                return convertSnaps<Course>(snaps);
             }), first());
     }
 
@@ -33,12 +29,7 @@ export class CoursesService {
             .snapshotChanges()
             .pipe(
                 map(snaps => {
-                    const courses = snaps.map(snap => {
-                        return <Course>{
-                            id: snap.payload.doc.id,
-                            ...(snap.payload.doc.data() as any)
-                        };
-                    });
+                    const courses = convertSnaps<Course>(snaps);
                     return courses.length === 1 ? courses[0] : undefined;
                 }),
                 first()
