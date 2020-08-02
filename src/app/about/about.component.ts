@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { of } from 'rxjs';
+import { Course } from 'app/model/course';
 
 @Component({
   selector: 'about',
@@ -37,6 +38,24 @@ export class AboutComponent implements OnInit {
 
     const batch$ = of(batch.commit());
     batch$.subscribe();
+  }
+
+  async runTransaction() {
+    const newCounter = await this.db.firestore.runTransaction(async transaction => {
+      console.log(`running transaction`);
+
+      const courseRef = this.db.doc('/courses/JyrmvrfbLV1MCCBNhEVm').ref;
+
+      const snap = await transaction.get(courseRef);
+      const course = <Course>snap.data();
+
+      const lessonsCount = course.lessonsCount + 1;
+      transaction.update(courseRef, { lessonsCount: lessonsCount });
+
+      return lessonsCount;
+    });
+
+    console.log(`new value for counter = ${newCounter}`);
   }
 
 }
