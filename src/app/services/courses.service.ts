@@ -26,4 +26,22 @@ export class CoursesService {
                 });
             }), first());
     }
+
+    findCourseByUrl(courseUrl: string): Observable<Course> {
+        return this.db.collection('courses',
+            ref => ref.where("url", "==", courseUrl))
+            .snapshotChanges()
+            .pipe(
+                map(snaps => {
+                    const courses = snaps.map(snap => {
+                        return <Course>{
+                            id: snap.payload.doc.id,
+                            ...(snap.payload.doc.data() as any)
+                        };
+                    });
+                    return courses.length === 1 ? courses[0] : undefined;
+                }),
+                first()
+            )
+    }
 }
