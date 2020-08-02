@@ -5,7 +5,7 @@ import { Course } from "../model/course";
 import { Injectable } from "@angular/core";
 import { AngularFirestore } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
-import { map } from 'rxjs/operators';
+import { map, take, first } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class CoursesService {
@@ -14,7 +14,9 @@ export class CoursesService {
     }
 
     loadAllCourses(): Observable<Course[]> {
-        return this.db.collection('courses').snapshotChanges()
+        return this.db.collection('courses', ref =>
+            ref.orderBy("seqNo")
+        ).snapshotChanges()
             .pipe(map(snaps => {
                 return snaps.map(snap => {
                     return <Course>{
@@ -22,6 +24,6 @@ export class CoursesService {
                         ...(snap.payload.doc.data() as any)
                     };
                 });
-            }));
+            }), first());
     }
 }
