@@ -1,9 +1,9 @@
-import {Component, OnInit} from '@angular/core';
-import {Course} from '../model/course';
-import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {AngularFirestore} from '@angular/fire/firestore';
-import {CoursesService} from '../services/courses.service';
+import { Component, OnInit } from '@angular/core';
+import { Course } from '../model/course';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { AngularFirestore } from '@angular/fire/firestore';
+import { CoursesService } from '../services/courses.service';
 
 
 @Component({
@@ -24,14 +24,19 @@ export class HomeComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.reloadCourses();
+    }
+
+    reloadCourses() {
+        console.log(`reloadCourses is called`);
         this.courses$ = this.coursesService.loadAllCourses();
 
-        this.beginnersCourses$ = this.courses$.pipe(map(courses => courses.filter(course => 
-             course.categories.includes('BEGINNER')
+        this.beginnersCourses$ = this.courses$.pipe(map(courses => courses.filter(course =>
+            course.categories.includes('BEGINNER')
         )));
 
-        this.advancedCourses$ = this.courses$.pipe(map(courses => courses.filter(course => 
+        this.advancedCourses$ = this.courses$.pipe(map(courses => courses.filter(course =>
             course.categories.includes('ADVANCED')
-       )));
+        )));
     }
 }
