@@ -13,7 +13,20 @@ export class AboutComponent implements OnInit {
   constructor(private db: AngularFirestore) { }
 
   ngOnInit() {
+    const courseRef = this.db.doc(`/courses/7t73EL7of191Xn9KqCbv`).snapshotChanges()
+      .subscribe(snap => {
+        const course: any = snap.payload.data();
+        console.log(`courseRef = ${course.relatedCourseRef}`);
+        console.log(course);
 
+      });
+
+    const ref = this.db.doc(`/courses/485Nc6rcz0x4CxgW62KT`).snapshotChanges()
+      .subscribe(doc => {
+        console.log("ref");
+        console.log(doc.payload.ref);
+        console.log(doc.payload.data())
+      });
   }
 
   save() {
