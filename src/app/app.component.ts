@@ -14,16 +14,20 @@ export class AppComponent implements OnInit {
 
   isLoggedOut$: Observable<boolean>;
 
+  pictureUrl$: Observable<string>;
+
   constructor(private afAuth: AngularFireAuth) {
 
   }
   ngOnInit(): void {
     this.afAuth.authState.subscribe(user => {
       console.log(user);
+
     });
 
     this.isLoggedIn$ = this.afAuth.authState.pipe(map(user => !!user));
     this.isLoggedOut$ = this.afAuth.authState.pipe(map(user => !user));
+    this.pictureUrl$ = this.afAuth.authState.pipe(map(user => user ? user.photoURL : null));
   }
 
   logout() {
