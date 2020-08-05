@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+
+ match /databases/{database}/documents {
+  match /courses/{courseId} {
+      allow get, list;
+      allow create;
+      allow delete: if false;
+      allow update: if courseId == "485Nc6rcz0x4CxgW62KT";
+  }
+  }
+  
+
+  
+}

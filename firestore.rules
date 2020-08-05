@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+
+match /databases/{database}/documents {
+ 
+ 		function isAdmin(){
+    	return isAuthenticated() && 
+      	get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+ 	  function isAuthenticated(){
+    	return request.auth.uid != null;
+    }
+    
+    function isKnownUser(){
+    	return isAuthenticated() && 
+      	exists( /databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    function isNonEmptyString(fieldname){
+    	return request.resource.data[fieldname] is string
+      	&& request.resource.data[fieldname].size() > 0;
+    }
+    
+    function isValidCourse(){
+    	return request.resource.data.seqNo is number
+      	&& request.resource.data.lessonsCount is number
+        && request.resource.data.lessonsCount > 0
+        && isNonEmptyString("url");
+    }
+    
+    match /users/{userId}{
+    	allow read, write: if false;
+    }
+    
+    match /courses/{courseId} {
+			allow read : if isKnownUser();
+      allow write: if isAdmin() && isValidCourse() && resource.data.status == "draft";
+      match /lessons/{lessonId}{
+    		allow read : if isKnownUser();
+        allow write: if isAdmin();
+      }
+		}
+  }
+}
