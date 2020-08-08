@@ -21,6 +21,19 @@
 
     </mat-form-field>
 
+    <div class="course-image-upload">
+        <span>Course:</span>
+        <input type="file" (change)="uploadFile($event)"/>
+        <div class="upload-progress" *ngIf="(uploadPercent$ | async) as percentage">
+            Upload progress: 
+            <mat-progress-bar class="progress-bar" mode="determinate" [value]="percentage"></mat-progress-bar>
+            <span>{{percentage/100 | percent}} </span>
+        </div>
+        <ng-container *ngIf="(donwloadUrl$ | async) as downloadUrl">
+            <img class="upload-image" [src]="downloadUrl"/>
+        </ng-container>
+    </div>
+
 
 </mat-dialog-content>
 
