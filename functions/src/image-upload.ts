@@ -2,9 +2,11 @@ import * as functions from 'firebase-functions';
 import * as path from 'path';
 import { Storage } from '@google-cloud/storage';
 import * as os from 'os';
-import * as mkdirp from 'mkdirp-promise';
 import { spawn } from 'child-process-promise';
+import * as rimraf from 'rimraf';
+import { db } from './init';
 
+const mkdirp = require('mkdirp-promise');
 const gcs = new Storage();
 
 export const resizeThumbnail = functions.storage.object()
@@ -40,15 +42,35 @@ export const resizeThumbnail = functions.storage.object()
             capture: ['stdout', 'stderr']
         });
         // Upload the thumbnail to storage
+        // Upload the Thumbnail to storage
 
         const metadata = {
             contentType: object.contentType,
-            cacheControl: `public,max-age=2592000, s-maxage=2592000`
+            cacheControl: 'public,max-age=2592000, s-maxage=2592000'
         };
 
-        console.log(`uploading the thumbnail to storage`, outputFile, outputFilePath);
+        console.log('Uploading the thumbnail to storage:', outputFile, outputFilePath);
 
-        await bucket.upload(outputFile, { destination: outputFilePath, metadata });
+        const uploadedFiles = await bucket.upload(outputFile, { destination: outputFilePath, metadata });
 
-        return null;
+        // delete local files to avoid filling up the file system over time
+        rimraf.sync(tempLocalDir);
+
+        await orignalImageFile.delete();
+
+        // create link to uploaded file
+        const thumbnail = uploadedFiles[0];
+
+        const url = await thumbnail.getSignedUrl({ action: 'read', expires: new Date(3000, 0, 1) });
+
+        console.log('Generated signed url:', url);
+
+        // save thumbnail link in database
+
+        const frags = fileFullPath.split('/'),
+            courseId = frags[1];
+
+        console.log('saving url to database: ' + courseId);
+
+        return db.doc(`courses/${courseId}`).update({ uploadedImageUrl: url });
     });
