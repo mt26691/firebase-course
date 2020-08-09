@@ -1,23 +1,47 @@
+
 import * as functions from 'firebase-functions';
 import { db } from './init';
 
-export const onAddLessons = functions.firestore.document('/courses/{courseId}/lessons/{lessonId}')
-    .onCreate(async (snap, context) => {
-        console.log(`Running on add lessons counters`);
 
-        return db.runTransaction(async transaction => {
+export const onAddLesson =
+    functions.firestore.document('courses/{courseId}/lessons/{lessonId}')
+        .onCreate(async (snap, context) => {
 
-            const courseRef = snap.ref.parent.parent;
+            console.log("Running onAddLesson trigger ...");
 
-            if (!courseRef) {
-                return;
-            }
-            const courseSnapShot = await transaction.get(courseRef);
-            const course = courseSnapShot.data();
-            if (!course) {
-                return;
-            }
-            const changes = { lessonsCount: course.lessonsCount + 1 };
-            transaction.update(courseRef, changes);
+            return courseTransaction(snap, (course: any) => {
+                return { lessonsCount: course.lessonsCount + 1 }
+            });
+
         });
+
+export const onDeleteLesson =
+    functions.firestore.document('courses/{courseId}/lessons/{lessonId}')
+        .onDelete(async (snap, context) => {
+
+            console.log("Running onDeleteLesson trigger ...");
+
+            return courseTransaction(snap, (course: any) => {
+                return { lessonsCount: course.lessonsCount - 1 }
+            });
+
+        });
+
+
+
+function courseTransaction(snap: any, cb: Function) {
+    return db.runTransaction(async transaction => {
+
+        const courseRef = snap.ref.parent.parent;
+
+        const courseSnap = await transaction.get(courseRef);
+
+        const course = (courseSnap as any).data();
+
+        const changes = cb(course);
+
+        transaction.update(courseRef, changes);
+
     });
+
+}
